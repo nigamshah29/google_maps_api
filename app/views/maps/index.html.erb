@@ -1,0 +1,84 @@
+<script type="text/javascript">
+function initMap() {
+
+  // if has params for mapsearch
+    // use google maps to search for lat / long from mapsearch
+  // else
+    var lat = <%= @lat %>;
+    var lng = <%= @lng %>;
+    var current_location = new google.maps.LatLng(lat, lng);
+
+  var map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 11,
+    center: current_location
+  });
+  // var marker = new google.maps.Marker({
+  //   position: current_location,
+  //   map: map
+  // });
+
+  // define getUrlParameter ....
+  var getUrlParameter = function getUrlParameter(sParam) {
+    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+        sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : sParameterName[1];
+        }
+    }
+  };
+
+  var search = getUrlParameter('mapsearch');
+  $.getJSON('/properties_json?mapsearch=' + search, function (results) {
+    console.log(results)
+    for (var i = 0; i < results.length; i++) {
+      console.log(i, 'result', results[i]);
+      var latLng = new google.maps.LatLng(results[i].latitude,results[i].longitude);
+      var marker = new google.maps.Marker({
+        position: latLng,
+        map: map
+      });
+    }
+  })
+
+
+
+
+}
+
+</script>
+<script async defer
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB-sQVuX8b2ECGCusIws9k7Jta3g2-n6zg&callback=initMap&libraries=places">
+</script>
+
+<form action="/" method="GET">
+  <input type="text" name="mapsearch" placeholder="Type an address">
+  <button class="btn btn-default" type="submit">Search</button>
+</form>
+<br>
+<div id="map"></div>
+  <h2>Results</h2>
+  <div class="listings">
+    <ul>
+      <% @p.each do |a| %>
+          <li><%=a.address%>, <%=a.city%>
+                  <%=a.state%></li>
+          <% end %>
+    </ul>
+  </div>
+  <hr>
+<h3>Mark a Location</h3>
+<form action="/create_property" method="POST">
+  <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+  Address: <input type=text name="address"><br>
+  City: <input type=text name="city"><br>
+  State: <input type=text name="state"><br>
+  <button class="btn btn-default" type="submit">Create</button>
+</form>
+<br>
+<br>
